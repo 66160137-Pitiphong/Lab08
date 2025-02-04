@@ -5,7 +5,7 @@ class TagManager {
     }
 
     addTag(tag) {
-        if (!this.tags.includes(tag)) {
+        if (!this.tags.includes(tag) && tag.trim() !== "") {
             this.tags.push(tag); // เพิ่มแท็กใหม่ถ้าไม่ซ้ำ
             this.saveTags(); // บันทึกแท็กลง LocalStorage
         }
@@ -25,25 +25,27 @@ const tagManager = new TagManager();
 
 // ดึง Input ฟิลด์แท็ก
 const tagsInput = document.getElementById("tags");
-const datalist = document.createElement("datalist");
-datalist.id = "tags-list";
-tagsInput.setAttribute("list", "tags-list");
-document.body.appendChild(datalist);
+const tagDisplay = document.createElement("div"); // ใช้แสดงแท็กทั้งหมด
+tagDisplay.id = "tag-display";
+tagDisplay.style.marginTop = "10px";
+tagDisplay.style.padding = "10px";
+tagDisplay.style.border = "1px solid #ccc";
+tagDisplay.style.borderRadius = "5px";
+document.querySelector(".blog-form").appendChild(tagDisplay); // แสดงด้านล่างฟอร์ม
 
-// อัปเดตรายการแท็กใน datalist
+// อัปเดตรายการแท็กใน div
 function updateTagList() {
     const tags = tagManager.getTags();
-    datalist.innerHTML = tags.map(tag => `<option value="${tag}">`).join("");
+    tagDisplay.innerHTML = tags.length
+        ? `แท็กทั้งหมด: ${tags.map(tag => `<span style="margin-right: 5px;">${tag}</span>`).join("")}`
+        : "ยังไม่มีแท็ก";
 }
-
-// เรียกใช้อัปเดต datalist เมื่อโหลดหน้าเว็บ
-updateTagList();
 
 // จัดการการเพิ่มแท็กใหม่เมื่อผู้ใช้เพิ่มบล็อก
 function handleAddTags(tagsString) {
     const tags = tagsString.split(",").map(tag => tag.trim());
     tags.forEach(tag => tagManager.addTag(tag));
-    updateTagList(); // อัปเดตรายการแท็กใน datalist
+    updateTagList(); // อัปเดตรายการแท็กใน div
 }
 
 // ส่วนที่เกี่ยวข้องกับการบันทึกบล็อก
@@ -57,6 +59,9 @@ function handleSubmit() {
         console.log("บันทึกบล็อกสำเร็จ!");
     }
 }
+
+// เรียกใช้อัปเดตแท็กเมื่อโหลดหน้าเว็บ
+updateTagList();
 
 // ตัวอย่าง Event Listener สำหรับการ Submit
 document.getElementById("blog-form").addEventListener("submit", (e) => {
