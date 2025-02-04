@@ -23,21 +23,14 @@ class TagManager {
 // ตัวจัดการแท็ก
 const tagManager = new TagManager();
 
-// ดึง Input ฟิลด์แท็ก
-const tagsInput = document.getElementById("tags");
-const tagDisplay = document.createElement("div"); // ใช้แสดงแท็กทั้งหมด
-tagDisplay.id = "tag-display";
-tagDisplay.style.marginTop = "10px";
-tagDisplay.style.padding = "10px";
-tagDisplay.style.border = "1px solid #ccc";
-tagDisplay.style.borderRadius = "5px";
-document.querySelector(".blog-form").appendChild(tagDisplay); // แสดงด้านล่างฟอร์ม
+// ดึงส่วนแสดงแท็ก
+const tagDisplay = document.getElementById("tag-display");
 
-// อัปเดตรายการแท็กใน div
+// ฟังก์ชันอัปเดตรายการแท็ก
 function updateTagList() {
     const tags = tagManager.getTags();
     tagDisplay.innerHTML = tags.length
-        ? `แท็กทั้งหมด: ${tags.map(tag => `<span style="margin-right: 5px;">${tag}</span>`).join("")}`
+        ? tags.map(tag => `<span class="tag">${tag}</span>`).join("")
         : "ยังไม่มีแท็ก";
 }
 
@@ -52,7 +45,8 @@ function handleAddTags(tagsString) {
 function handleSubmit() {
     const title = document.getElementById("title").value.trim();
     const content = document.getElementById("content").value.trim();
-    const tags = document.getElementById("tags").value.trim();
+
+    const tags = prompt("กรุณาใส่แท็ก (คั่นด้วยเครื่องหมายจุลภาค):"); // ใช้ Prompt เพื่อรับแท็กแทน Input
 
     if (title && content) {
         handleAddTags(tags); // เพิ่มแท็กใหม่เข้า TagManager
