@@ -1,129 +1,65 @@
-class Blog {
-    constructor(id, title, content, tags) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.tags = tags.split(',').map(tag => tag.trim());
-        this.createdDate = new Date();
-        this.updatedDate = new Date();
-    }
-
-    update(title, content, tags) {
-        this.title = title;
-        this.content = content;
-        this.tags = tags.split(',').map(tag => tag.trim());
-        this.updatedDate = new Date();
-    }
-}
-
-class BlogManager {
+class TagManager {
     constructor() {
-        this.blogs = JSON.parse(localStorage.getItem("blogs")) || [];
+        // โหลดแท็กจาก LocalStorage หรือสร้างอาร์เรย์ว่างถ้าไม่มี
+        this.tags = JSON.parse(localStorage.getItem("tags")) || [];
     }
 
-    addBlog(title, content, tags) {
-        const blog = new Blog(Date.now(), title, content, tags);
-        this.blogs.push(blog);
-        this.saveBlogs();
-        return blog;
-    }
-
-    updateBlog(id, title, content, tags) {
-        const blog = this.getBlog(id);
-        if (blog) {
-            blog.update(title, content, tags);
-            this.saveBlogs();
+    addTag(tag) {
+        if (!this.tags.includes(tag)) {
+            this.tags.push(tag); // เพิ่มแท็กใหม่ถ้าไม่ซ้ำ
+            this.saveTags(); // บันทึกแท็กลง LocalStorage
         }
-        return blog;
     }
 
-    deleteBlog(id) {
-        this.blogs = this.blogs.filter(blog => blog.id !== id);
-        this.saveBlogs();
+    saveTags() {
+        localStorage.setItem("tags", JSON.stringify(this.tags));
     }
 
-    getBlog(id) {
-        return this.blogs.find(blog => blog.id === id);
-    }
-
-    saveBlogs() {
-        localStorage.setItem("blogs", JSON.stringify(this.blogs));
+    getTags() {
+        return this.tags; // ดึงรายการแท็กทั้งหมด
     }
 }
 
-class BlogUI {
-    constructor(blogManager) {
-        this.blogManager = blogManager;
-        this.initElements();
-        this.initEventListeners();
-        this.render();
-    }
+// ตัวจัดการแท็ก
+const tagManager = new TagManager();
 
-    initElements() {
-        this.form = document.getElementById("blog-form");
-        this.titleInput = document.getElementById("title");
-        this.contentInput = document.getElementById("content");
-        this.tagsInput = document.getElementById("tags");
-        this.editIdInput = document.getElementById("edit-id");
-        this.formTitle = document.getElementById("form-title");
-        this.cancelBtn = document.getElementById("cancel-btn");
-        this.blogList = document.getElementById("blog-list");
-    }
+// ดึง Input ฟิลด์แท็ก
+const tagsInput = document.getElementById("tags");
+const datalist = document.createElement("datalist");
+datalist.id = "tags-list";
+tagsInput.setAttribute("list", "tags-list");
+document.body.appendChild(datalist);
 
-    initEventListeners() {
-        this.form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            this.handleSubmit();
-        });
+// อัปเดตรายการแท็กใน datalist
+function updateTagList() {
+    const tags = tagManager.getTags();
+    datalist.innerHTML = tags.map(tag => `<option value="${tag}">`).join("");
+}
 
-        this.cancelBtn.addEventListener("click", () => {
-            this.resetForm();
-        });
-    }
+// เรียกใช้อัปเดต datalist เมื่อโหลดหน้าเว็บ
+updateTagList();
 
-    handleSubmit() {
-        const title = this.titleInput.value.trim();
-        const content = this.contentInput.value.trim();
-        const tags = this.tagsInput.value.trim();
-        const editId = parseInt(this.editIdInput.value);
+// จัดการการเพิ่มแท็กใหม่เมื่อผู้ใช้เพิ่มบล็อก
+function handleAddTags(tagsString) {
+    const tags = tagsString.split(",").map(tag => tag.trim());
+    tags.forEach(tag => tagManager.addTag(tag));
+    updateTagList(); // อัปเดตรายการแท็กใน datalist
+}
 
-        if (title && content) {
-            if (editId) {
-                this.blogManager.updateBlog(editId, title, content, tags);
-            } else {
-                this.blogManager.addBlog(title, content, tags);
-            }
-            this.resetForm();
-            this.render();
-        }
-    }
+// ส่วนที่เกี่ยวข้องกับการบันทึกบล็อก
+function handleSubmit() {
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const tags = document.getElementById("tags").value.trim();
 
-    resetForm() {
-        this.form.reset();
-        this.editIdInput.value = "";
-        this.formTitle.textContent = "เขียนบล็อกใหม่";
-        this.cancelBtn.classList.add("hidden");
-    }
-
-    render() {
-        this.blogList.innerHTML = this.blogManager.blogs.map(blog => `
-            <div class="blog-post">
-                <h2>${blog.title}</h2>
-                <div>เนื้อหา: ${blog.content}</div>
-                <div>แท็ก: ${blog.tags.join(", ")}</div>
-                <button onclick="blogUI.deleteBlog(${blog.id})">ลบ</button>
-            </div>
-        `).join("");
-    }
-
-    deleteBlog(id) {
-        if (confirm("ต้องการลบบล็อกนี้หรือไม่?")) {
-            this.blogManager.deleteBlog(id);
-            this.render();
-        }
+    if (title && content) {
+        handleAddTags(tags); // เพิ่มแท็กใหม่เข้า TagManager
+        console.log("บันทึกบล็อกสำเร็จ!");
     }
 }
 
-// เริ่มต้นการทำงาน
-const blogManager = new BlogManager();
-const blogUI = new BlogUI(blogManager);
+// ตัวอย่าง Event Listener สำหรับการ Submit
+document.getElementById("blog-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    handleSubmit();
+});
