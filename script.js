@@ -1,20 +1,16 @@
 class Blog {
-    constructor(id, title, content, author1, author2, tags) {
+    constructor(id, title, content, tags) {
         this.id = id;
         this.title = title;
         this.content = content;
-        this.author1 = author1;
-        this.author2 = author2 || null;
         this.tags = tags.split(',').map(tag => tag.trim());
         this.createdDate = new Date();
         this.updatedDate = new Date();
     }
 
-    update(title, content, author1, author2, tags) {
+    update(title, content, tags) {
         this.title = title;
         this.content = content;
-        this.author1 = author1;
-        this.author2 = author2 || null;
         this.tags = tags.split(',').map(tag => tag.trim());
         this.updatedDate = new Date();
     }
@@ -25,17 +21,17 @@ class BlogManager {
         this.blogs = JSON.parse(localStorage.getItem("blogs")) || [];
     }
 
-    addBlog(title, content, author1, author2, tags) {
-        const blog = new Blog(Date.now(), title, content, author1, author2, tags);
+    addBlog(title, content, tags) {
+        const blog = new Blog(Date.now(), title, content, tags);
         this.blogs.push(blog);
         this.saveBlogs();
         return blog;
     }
 
-    updateBlog(id, title, content, author1, author2, tags) {
+    updateBlog(id, title, content, tags) {
         const blog = this.getBlog(id);
         if (blog) {
-            blog.update(title, content, author1, author2, tags);
+            blog.update(title, content, tags);
             this.saveBlogs();
         }
         return blog;
@@ -67,8 +63,6 @@ class BlogUI {
         this.form = document.getElementById("blog-form");
         this.titleInput = document.getElementById("title");
         this.contentInput = document.getElementById("content");
-        this.author1Input = document.getElementById("author1");
-        this.author2Input = document.getElementById("author2");
         this.tagsInput = document.getElementById("tags");
         this.editIdInput = document.getElementById("edit-id");
         this.formTitle = document.getElementById("form-title");
@@ -90,16 +84,14 @@ class BlogUI {
     handleSubmit() {
         const title = this.titleInput.value.trim();
         const content = this.contentInput.value.trim();
-        const author1 = this.author1Input.value.trim();
-        const author2 = this.author2Input.value.trim();
         const tags = this.tagsInput.value.trim();
         const editId = parseInt(this.editIdInput.value);
 
-        if (title && content && author1) {
+        if (title && content) {
             if (editId) {
-                this.blogManager.updateBlog(editId, title, content, author1, author2, tags);
+                this.blogManager.updateBlog(editId, title, content, tags);
             } else {
-                this.blogManager.addBlog(title, content, author1, author2, tags);
+                this.blogManager.addBlog(title, content, tags);
             }
             this.resetForm();
             this.render();
@@ -118,7 +110,6 @@ class BlogUI {
             <div class="blog-post">
                 <h2>${blog.title}</h2>
                 <div>เนื้อหา: ${blog.content}</div>
-                <div>เขียนโดย: ${blog.author1}${blog.author2 ? ` และ ${blog.author2}` : ""}</div>
                 <div>แท็ก: ${blog.tags.join(", ")}</div>
                 <button onclick="blogUI.deleteBlog(${blog.id})">ลบ</button>
             </div>
